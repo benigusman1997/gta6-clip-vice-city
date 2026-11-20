@@ -26,11 +26,19 @@ const youtubePattern = /^https:\/\/(www\.youtube\.com\/(shorts\/|watch\?v=)|yout
 if (!youtubePattern.test(video.url)) {
   fail(`VIDEO.json URL does not look like a YouTube video address: ${video.url}`);
 }
+// Extract the 11-character YouTube video ID so a wrong or truncated link is
+// caught here instead of failing the entry's video check on the site.
+const idMatch = video.url.match(/(?:shorts\/|watch\?v=|youtu\.be\/)([A-Za-z0-9_-]{11})/);
+if (!idMatch) {
+  fail(`VIDEO.json URL has no 11-character YouTube video ID: ${video.url}`);
+}
+const videoId = idMatch[1];
 
 const manifest = {
   competition: "gta6-clipper-01",
   title: "GTA 6 Is Coming — Welcome Back to Vice City (May 26, 2026)",
   video_url: video.url,
+  video_id: videoId,
   clip: {
     file: "gta6-clip-vertical.mp4 (delivered with the entry; source footage: Rockstar's official Grand Theft Auto VI Trailer 2)",
     format: "1080x1920 vertical, H.264/AAC, 30 fps",
@@ -49,4 +57,4 @@ mkdirSync(outDir, { recursive: true });
 copyFileSync(videoPath, join(outDir, "VIDEO.json"));
 writeFileSync(join(outDir, "manifest.json"), JSON.stringify(manifest, null, 2) + "\n");
 console.log(`clipper entry: wrote ${join(outDir, "VIDEO.json")} and ${join(outDir, "manifest.json")}`);
-console.log(`clipper entry: video ${video.url}`);
+console.log(`clipper entry: video ${video.url} (id ${videoId})`);
